@@ -110,6 +110,5 @@ func NewNotification() Notification {
 
 	n.font_size = fontSize{value: DefaultFontSize}
 
-	n.set_urgency(1) // default
 	return n
 }

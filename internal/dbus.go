@@ -184,6 +184,8 @@ func parse_hints(nf *Notification, hints map[string]dbus.Variant) {
 	urgency, ok := hints["urgency"].Value().(uint8)
 	if ok {
 		nf.set_urgency(urgency)
+	} else {
+		nf.set_urgency(1)
 	}
 
 	if !FixedFontSize {
