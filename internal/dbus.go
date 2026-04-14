@@ -92,6 +92,10 @@ func (n DBusNotify) Notify(
 	expire_timeout int32,
 ) (uint32, *dbus.Error) {
 
+	if _, err := os.Stat("/tmp/dnd"); err == nil {
+		return 1, nil
+	}
+
 	if replaces_id > 0 {
 		n.CloseNotification(replaces_id)
 	}
