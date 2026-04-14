@@ -70,8 +70,6 @@ var (
 	ongoing_notifications       map[uint32]chan uint32 = make(map[uint32]chan uint32)
 	current_id                  uint32                 = 0
 	notification_padding_regexp *regexp.Regexp         = regexp.MustCompile("^\\s*|(\n)\\s*(.)")
-	sound                       bool
-	FixedFontSize               bool
 )
 
 type DBusNotify string
@@ -103,43 +101,31 @@ func (n DBusNotify) Notify(
 	}
 	current_id++
 
-	// Send Notification
-	nf := NewNotification()
-
-	parse_hints(&nf, hints)
+	msg := ""
 
 	// Setting min-width, left alignment
-	summary = fmt.Sprintf("%-60s", summary)
-	if nf.icon.value == nf.icon.NOICON {
-		summary += "  "
-	}
+	summary = fmt.Sprintf("%-25s", summary)
 	summary += "\u205F"
 
 	if body != "" {
-		nf.message = fmt.Sprintf("%s\n%s", summary, body)
+		msg = fmt.Sprintf("%s\n%s", summary, body)
 	} else {
-		nf.message = summary
+		msg = summary
 	}
 
 	// Using RegExp to add padding for all lines
-	nf.message = notification_padding_regexp.
+	msg = notification_padding_regexp.
 		ReplaceAllString(
-			strings.TrimLeft(nf.message, "\n"),
-			"$1\u205F $2",
+			strings.TrimLeft(msg, "\n"),
+			"$1\u205F$2",
 		)
 
-	if expire_timeout != -1 {
-		nf.time_ms = expire_timeout
-	}
-	hyprsock.SendNotification(&nf)
+	hyprsock.SendNotification(msg)
 
-	if sound {
-		go PlayAudio()
-	}
 	// ClosedNotification Signal Stuff
 	flag := make(chan uint32, 1)
 	ongoing_notifications[current_id] = flag
-	go SendCloseSignal(nf.time_ms, current_id, 1, flag)
+	go SendCloseSignal(1000, current_id, 1, flag)
 	return current_id, nil
 }
 
@@ -159,7 +145,7 @@ func (n DBusNotify) CloseNotification(id uint32) *dbus.Error {
 }
 
 func (n DBusNotify) GetServerInformation() (string, string, string, string, *dbus.Error) {
-	return PACKAGE, VENDOR, VERSION, FDN_SPEC_VERSION, nil
+	return "hyprnotify", "hyprnotify", "0.8.0", FDN_SPEC_VERSION, nil
 }
 
 func SendCloseSignal(timeout int32, id uint32, reason uint32, flag chan uint32) {
@@ -182,43 +168,7 @@ func SendCloseSignal(timeout int32, id uint32, reason uint32, flag chan uint32) 
 	delete(ongoing_notifications, id)
 }
 
-func parse_hints(nf *Notification, hints map[string]dbus.Variant) {
-
-	urgency, ok := hints["urgency"].Value().(uint8)
-	if ok {
-		nf.set_urgency(urgency)
-	} else {
-		nf.set_urgency(1)
-	}
-
-	if !FixedFontSize {
-		font_size, ok := hints["x-hyprnotify-font-size"].Value().(int32)
-		if ok {
-			nf.font_size.value = uint8(font_size)
-		}
-	}
-
-	hint_icon, ok := hints["x-hyprnotify-icon"].Value().(int32)
-	if ok {
-		nf.icon.value = hint_icon
-		nf.icon.padding = ""
-		nf.color.value = nf.color.DEFAULT
-	}
-
-	hint_color, ok := hints["x-hyprnotify-color"].Value().(string)
-	if ok {
-		if string(hint_color[0]) == "#" {
-			hint_color = hint_color[1:]
-		}
-		if len(hint_color) == 6 && is_valid_hex_string(hint_color) {
-			nf.color.value = nf.color.HEX(hint_color)
-		}
-	}
-}
-
-func InitDBus(enable_sound bool) {
-	sound = enable_sound
-
+func InitDBus() {
 	var err error
 	conn, err = dbus.ConnectSessionBus()
 	if err != nil {
@@ -227,11 +177,8 @@ func InitDBus(enable_sound bool) {
 	defer conn.Close()
 
 	GetHyprSocket(&hyprsock)
-	if sound {
-		InitSpeaker()
-	}
 
-	n := DBusNotify(PACKAGE)
+	n := DBusNotify("hyprnotify")
 	conn.Export(n, FDN_PATH, FDN_IFAC)
 	conn.Export(introspect.Introspectable(DBUS_XML), FDN_PATH, INTROSPECTABLE_IFAC)
 

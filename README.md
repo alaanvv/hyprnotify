@@ -39,6 +39,10 @@
   <p align="center">
     A DBus Implementation for 'hyprctl notify'
     <br />
+    <b>
+    This fork is for personal use. Almost nothing documented here is part of my fork since I removed lots of features I wouldn't use.
+    </b>
+    <br />
     <br />
   </p>
 </div>
@@ -65,7 +69,6 @@
       <ul>
         <li><a href="#command-line-arguments">Command-line arguments</a></li>
         <li><a href="#examples">Examples</a></li>
-        <li><a href="#custom-hints">Custom Hints</a></li>
         <li><a href="#note-about-replace-id">Note about `replace-id`</a></li>
       </ul>
     </li>
@@ -135,7 +138,6 @@ You can download the release binaries directly from the [releases](https://githu
 #### Prerequisites
 
  - `go` compiler
- - `alsa-lib` or `libasound` for sound support
  - `libnotify` to send notifications with `notify-send` (optional)
 
 #### Compiling
@@ -167,9 +169,6 @@ hyprnotify
 ### Command-line arguments
 | Argument            | Remark                                       |
 |:-------------------:|:--------------------------------------------:|
-|`--font-size` or `-f`| Set custom default font size (default is 13) |
-|`--fixed-font-size`  | Ignores font size hints                      |
-|`--no-sound` or `-s` | Enable silent mode                           |
 |`--help`             | Displays help text                           |
 
 > [!IMPORTANT]
@@ -185,31 +184,10 @@ Send a notification with body text:
 ```sh
 notify-send "Chat?" "Is this real"
 ```
-Add a font-size hint:
-```sh
-notify-send "This is very big!" -h int:x-hyprnotify-font-size:40
-```
 Add an urgency hint and last for 20 seconds:
 ```sh
 notify-send "This is serious stuff!" -u critical -t 20000 
 ```
-### Custom Hints
-|          Hint           |              Example                |              Remark              |
-|:-----------------------:|:-----------------------------------:|:--------------------------------:|
-| `x-hyprnotify-font-size`| `int:x-hyprnotify-font-size:30`     | font size for notification       |
-| `x-hyprnotify-color`    | `string:x-hyprnotify-color:#ff30fa` | hex color code for notif. color  |
-| `x-hyprnotify-icon`     | `int:x-hyprnotify-icon:3`           | icon identifier for notification |
-
-
-#### `x-hyprnotify-icon`
-| ID |   Icon | Preview |
-|:--:|:-------|:-------:|
-|`0` |WARNING |![WARNING](https://github.com/codelif/hyprnotify/assets/68972644/7bf5ff97-1d6a-45b0-9715-7e8d1535d866)|
-|`1` |INFO    |![INFO](https://github.com/codelif/hyprnotify/assets/68972644/473e5752-42b3-44cf-bd07-bed64abc9660)|
-|`2` |HINT    |![HINT](https://github.com/codelif/hyprnotify/assets/68972644/ffc6ff60-1058-4e5b-8fe3-611ba4b40206)|
-|`3` |ERROR   |![ERROR](https://github.com/codelif/hyprnotify/assets/68972644/630b2979-382b-4fe3-902e-6ee3526fcfe4)|
-|`4` |CONFUSED|![CONFUSED](https://github.com/codelif/hyprnotify/assets/68972644/64ae100b-dc2c-46dd-be8c-afdacb03042b)|
-|`5` |OK      |![OK](https://github.com/codelif/hyprnotify/assets/68972644/2b66a258-5e07-4683-a798-fe6f47d67716)|
 
 ### Note about `replace-id`:
 When using `replace-id` with `notify-send`
@@ -232,11 +210,8 @@ Due to this, it is advisable to use it to replace only the latest notification.
 - [x] Replace shell command invocation with IPC
 - [x] Hints Support:
     - [x] urgency
-    - [x] font-size
-    - [x] color
-    - [x] icon
 - [ ] Add support for sound
-    - [x] Default sound support
+    - [ ] Default sound support
     - [ ] sound hints
 - [x] Fix race condition in `CloseNotification` Signal
 - [ ] Scrap the Project
