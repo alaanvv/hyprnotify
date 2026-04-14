@@ -77,8 +77,7 @@ var (
 type DBusNotify string
 
 func (n DBusNotify) GetCapabilities() ([]string, *dbus.Error) {
-	cap := []string{"body"}
-	return cap, nil
+	return []string{"body", "actions", "icon-static"}, nil
 }
 
 func (n DBusNotify) Notify(
